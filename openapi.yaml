@@ -1,0 +1,65 @@
+openapi: 3.0.0
+info:
+  title: Pet Shelter API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      responses:
+        '200':
+          description: A list of pets
+    post:
+      summary: Add a new pet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+      responses:
+        '201':
+          description: Created
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - name
+        - species
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        species:
+          type: string
+        breed:
+          type: string
+        colour:
+          type: string
+        age:
+          type: integer
+          minimum: 0
+        sex:
+          type: string
+          enum:
+            - male
+            - female
+        weight:
+          type: float
+          minimum: 0
+        neutered:
+          type: boolean
+        vaccinated:
+          type: boolean
+        adoption_status:
+          type: string
+          enum:
+            - available
+            - pending
+            - adopted
