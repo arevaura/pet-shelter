@@ -44,13 +44,13 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-# 2. Install Dependencies
+## 2. Install Dependencies
 
 ```bash
 pip install fastapi uvicorn pytest httpx datamodel-code-generator
 ```
 
-# 3. Generate Models (Optional)
+## 3. Generate Models (Optional)
 
 If you update the `openapi.yaml`, refresh the models using:
 
@@ -58,7 +58,7 @@ If you update the `openapi.yaml`, refresh the models using:
 python -m datamodel_code_generator --input openapi.yaml --output models.py
 ```
 
-# 4. Run Locally
+## 4. Run Locally
 
 ```bash
 uvicorn main:app --reload
