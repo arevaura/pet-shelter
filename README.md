@@ -1,3 +1,5 @@
+![Build Status](https://github.com/arevaura/pet-shelter/actions/workflows/deploy.yml/badge.svg)
+
 # 🐾 Pet Shelter API
 
 A modern, production-ready FastAPI service for managing pet shelter records. This project demonstrates a **Contract-First** development workflow, automated testing, and CI/CD integration.
