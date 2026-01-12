@@ -38,7 +38,7 @@ A modern, production-ready FastAPI service for managing pet shelter records. Thi
 ## 1. Clone & Environment
 
 ```bash
-git clone [https://github.com/arevaura/pet-shelter.git](https://github.com/arevaura/pet-shelter.git)
+git clone https://github.com/arevaura/pet-shelter.git
 cd pet-shelter
 
 python -m venv venv
