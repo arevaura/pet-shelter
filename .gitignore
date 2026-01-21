@@ -1,6 +1,19 @@
+.vscode
+.venv
 venv/
+
+
+# Python generated files
+python-app/models.py
 __pycache__/
 .pytest_cache/
 .ruff_cache/
-.vscode
-models.py
+
+# Java generated files
+java-app/target/
+java-app/bin/
+java-app/.classpath
+java-app/.project
+java-app/.settings/
+java-app/.maven/
+java-app/apache-maven-*/
