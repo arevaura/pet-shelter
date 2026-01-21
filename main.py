@@ -1,10 +1,13 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 from typing import List
 
 from models import Pet # This imports the class generated from the YAML
 
 app = FastAPI()
-pets_db = [] # In-memory database
+
+# In-memory database
+pets_db = []
 
 @app.get("/pets", response_model=List[Pet])
 def get_pets():

@@ -51,8 +51,7 @@ components:
             - male
             - female
         weight:
-          type: number
-          format: float
+          type: float
           minimum: 0
         neutered:
           type: boolean
