@@ -1,6 +1,7 @@
 name: CI and Push to GHCR
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
 
@@ -25,7 +26,7 @@ jobs:
           pip install fastapi uvicorn pytest httpx datamodel-code-generator
 
       - name: Generate Models from Source of Truth
-        run: datamodel-code-generator --input openapi.yaml --output models.py
+        run: python -m datamodel_code_generator --input openapi.yaml --output models.py --output-model-type pydantic_v2.BaseModel
 
       - name: Lint code with Ruff
         run: |
