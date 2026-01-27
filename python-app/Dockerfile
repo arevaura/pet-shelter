@@ -4,7 +4,7 @@ WORKDIR /app
 COPY openapi.yaml .
 RUN pip install datamodel-code-generator
 # Generate models.py dynamically:
-RUN datamodel-code-generator --input openapi.yaml --output models.py
+RUN python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
 
 # Stage 2: Final Production Image
 FROM python:3.12-slim

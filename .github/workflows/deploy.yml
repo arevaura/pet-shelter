@@ -24,7 +24,7 @@ jobs:
         run: pip install fastapi uvicorn pytest httpx datamodel-code-generator
 
       - name: Generate Models from Source of Truth
-        run: datamodel-code-generator --input openapi.yaml --output models.py
+        run: python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
 
       - name: Lint code with Ruff
         run: |
@@ -72,7 +72,7 @@ jobs:
         run: |
           cd java-app
           mvn clean package -DskipTests
-          
+
       - name: Log in to GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
         with:
