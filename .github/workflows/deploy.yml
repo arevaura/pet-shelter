@@ -1,6 +1,7 @@
 name: Monorepo CI/CD and Push to GHCR
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
 
@@ -24,7 +25,7 @@ jobs:
         run: pip install fastapi uvicorn pytest httpx datamodel-code-generator
 
       - name: Generate Models from Source of Truth
-        run: python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
+        run: datamodel-code-generator --input openapi.yaml --output python-app/models.py
 
       - name: Lint code with Ruff
         run: |
