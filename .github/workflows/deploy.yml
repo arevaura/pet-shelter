@@ -2,7 +2,7 @@ name: Monorepo CI/CD and Push to GHCR
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop-monorepo" ]
 
 jobs:
   python-pipeline:
@@ -72,6 +72,13 @@ jobs:
         run: |
           cd java-app
           mvn clean package -DskipTests
+          
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
