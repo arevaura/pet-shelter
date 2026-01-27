@@ -2,7 +2,7 @@ name: Monorepo CI/CD and Push to GHCR
 
 on:
   push:
-    branches: [ "main", "develop-monorepo" ]
+    branches: [ "main" ]
 
 jobs:
   python-pipeline:
