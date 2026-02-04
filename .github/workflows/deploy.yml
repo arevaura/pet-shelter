@@ -78,7 +78,7 @@ jobs:
           cache: 'maven'
       
       - name: Make Maven Wrapper Executable
-        run: chmod +x ./mvnw
+        run: chmod +x ./java-app/mvnw
       
       - name: Build Java App
         run: |
