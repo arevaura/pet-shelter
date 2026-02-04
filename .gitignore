@@ -1,7 +1,8 @@
-.vscode
-.venv
-venv/
+# IDE files
+.vscode/
 
+# Virtual environments
+venv/
 
 # Python generated files
 python-app/models.py
@@ -11,9 +12,12 @@ __pycache__/
 
 # Java generated files
 java-app/target/
-java-app/bin/
-java-app/.classpath
-java-app/.project
-java-app/.settings/
-java-app/.maven/
 java-app/apache-maven-*/
+java-app/src/main/java/com/petshelter/temp/
+
+# Temporary files
+*.zip
+*.tar.gz
+maven.zip
+maven.tar.gz
+openapi-generator.jar
