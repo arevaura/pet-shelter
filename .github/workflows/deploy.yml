@@ -32,7 +32,7 @@ jobs:
         run: pip install fastapi uvicorn pytest httpx datamodel-code-generator
 
       - name: Generate Models from Source of Truth
-        run: datamodel-code-generator --input openapi.yaml --output python-app/models.py
+        run: python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
 
       - name: Lint code with Ruff
         run: |
@@ -43,6 +43,9 @@ jobs:
         run: |
           cd python-app
           pytest
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry (GHCR)
         if: github.event_name != 'pull_request'
@@ -58,6 +61,7 @@ jobs:
           context: .
           file: ./python-app/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository }}/python-pet-shelter:latest
   
   java-pipeline:
@@ -85,6 +89,9 @@ jobs:
           cd java-app
           ./mvnw clean package -DskipTests -B
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GitHub Container Registry (GHCR)
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -99,4 +106,5 @@ jobs:
           context: .
           file: ./java-app/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository }}/java-pet-shelter:latest
