@@ -1,10 +1,9 @@
 FROM maven:3.9-eclipse-temurin-11 AS build
 WORKDIR /app
 COPY java-app/pom.xml .
-COPY java-app/.mvn .mvn
+COPY java-app/.mvn/ .mvn/
 COPY java-app/mvnw* .
-# Fix line endings and permissions for mvnw script
-RUN dos2unix mvnw || sed -i 's/\r$//' mvnw && chmod +x mvnw
+RUN chmod +x mvnw
 # Download dependencies (cached layer)
 RUN ./mvnw dependency:go-offline -B
 # Copy source code
