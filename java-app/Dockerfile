@@ -2,7 +2,7 @@ FROM maven:3.9-eclipse-temurin-11 AS build
 WORKDIR /app
 COPY java-app/pom.xml .
 COPY java-app/.mvn/ .mvn/
-COPY java-app/mvnw* .
+COPY java-app/mvnw .
 # Fix line endings and permissions for mvnw script
 RUN dos2unix mvnw || sed -i 's/\r$//' mvnw && chmod +x mvnw
 # Verify mvnw exists and is executable
