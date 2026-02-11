@@ -5,6 +5,8 @@ COPY java-app/.mvn/ .mvn/
 COPY java-app/mvnw .
 # Fix line endings and permissions for mvnw script
 RUN dos2unix mvnw || sed -i 's/\r$//' mvnw && chmod +x mvnw
+# Clean up any conflicting .m2 directory
+RUN rm -rf /root/.m2
 # Verify mvnw exists and is executable
 RUN ls -la mvnw && ./mvnw --version
 # Download dependencies (cached layer)
