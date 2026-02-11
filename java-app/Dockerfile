@@ -3,7 +3,10 @@ WORKDIR /app
 COPY java-app/pom.xml .
 COPY java-app/.mvn/ .mvn/
 COPY java-app/mvnw* .
-RUN chmod +x mvnw
+# Fix line endings and permissions for mvnw script
+RUN dos2unix mvnw || sed -i 's/\r$//' mvnw && chmod +x mvnw
+# Verify mvnw exists and is executable
+RUN ls -la mvnw && ./mvnw --version
 # Download dependencies (cached layer)
 RUN ./mvnw dependency:go-offline -B
 # Copy source code
