@@ -60,7 +60,7 @@ jobs:
         with:
           context: .
           file: ./python-app/Dockerfile
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository }}/python-pet-shelter:latest
   
@@ -105,6 +105,6 @@ jobs:
         with:
           context: .
           file: ./java-app/Dockerfile
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository }}/java-pet-shelter:latest
