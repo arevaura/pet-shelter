@@ -72,7 +72,7 @@ jobs:
       - name: Build Java App
         run: |
           cd java-app
-          mvn clean package -DskipTests
+          .\mvnw.cmd clean package -DskipTests
 
       - name: Log in to GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
