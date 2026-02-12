@@ -2,6 +2,8 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY openapi.yaml .
 COPY java-app/ .
+# Make mvnw executable
+RUN chmod +x ./mvnw
 # Generate Java code and build the JAR:
 RUN ./mvnw clean package -DskipTests 
 
