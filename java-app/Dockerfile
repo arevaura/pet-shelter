@@ -3,7 +3,7 @@ WORKDIR /app
 COPY openapi.yaml .
 COPY java-app/ .
 # Generate Java code and build the JAR:
-RUN .\mvnw clean package -DskipTests 
+RUN ./mvnw clean package -DskipTests 
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
