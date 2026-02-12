@@ -70,12 +70,10 @@ jobs:
           cache: 'maven'
 
       - name: Make mvnw executable
-        run: chmod +x ./mvnw
+        run: chmod +x ./java-app/mvnw
 
       - name: Build Java App
-        run: |
-          cd java-app
-          ./mvnw clean package -DskipTests
+        run: ./java-app/mvnw clean package -DskipTests
 
       - name: Log in to GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
