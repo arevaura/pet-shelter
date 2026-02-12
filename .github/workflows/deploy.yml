@@ -3,13 +3,7 @@ name: Monorepo CI/CD and Push to GHCR
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" , "develop-monorepo" ]
-  pull_request:
-    branches: [ "main" , "develop-monorepo" ]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+    branches: [ "main", "develop-monorepo" ]
 
 jobs:
   python-pipeline:
@@ -26,7 +20,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-          cache: 'pip'
 
       - name: Install Python Tools & Dependencies
         run: pip install fastapi uvicorn pytest httpx datamodel-code-generator
@@ -44,14 +37,10 @@ jobs:
           cd python-app
           pytest
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Log in to GitHub Container Registry (GHCR)
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,8 +49,7 @@ jobs:
         with:
           context: .
           file: ./python-app/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          platforms: linux/amd64,linux/arm64
+          push: true
           tags: ghcr.io/${{ github.repository }}/python-pet-shelter:latest
   
   java-pipeline:
@@ -74,29 +62,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-      
-      - name: Make Maven Wrapper Executable
-        run: chmod +x ./java-app/mvnw
       
       - name: Build Java App
         run: |
           cd java-app
-          ./mvnw clean package -DskipTests -B
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          mvn clean package -DskipTests
 
       - name: Log in to GitHub Container Registry (GHCR)
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
@@ -105,6 +86,5 @@ jobs:
         with:
           context: .
           file: ./java-app/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          platforms: linux/amd64,linux/arm64
+          push: true
           tags: ghcr.io/${{ github.repository }}/java-pet-shelter:latest

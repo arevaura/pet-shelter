@@ -2,7 +2,7 @@
 FROM python:3.12-slim AS generator
 WORKDIR /app
 COPY openapi.yaml .
-RUN pip install --no-cache-dir datamodel-code-generator
+RUN pip install --no-cache-dir datamodel_code_generator
 # Generate models.py dynamically:
 RUN mkdir -p python-app && python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
 
