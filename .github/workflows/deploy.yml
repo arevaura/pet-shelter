@@ -90,11 +90,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Make mvnw executable
-        run: chmod +x ./java-app/mvnw
-
       - name: Build Java App
-        run: ./java-app/mvnw clean package -DskipTests
+        run: |
+          cd java-app
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
