@@ -6,6 +6,10 @@ from models import Pet # This imports the class generated from the YAML
 app = FastAPI()
 pets_db = [] # In-memory database
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 @app.get("/pets", response_model=List[Pet])
 def get_pets():
     return pets_db
