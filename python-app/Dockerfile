@@ -1,21 +1,28 @@
-# Stage 1: Generator
 FROM python:3.12-slim AS generator
 WORKDIR /app
 COPY openapi.yaml .
-RUN pip install --no-cache-dir datamodel_code_generator
-# Generate models.py dynamically:
-RUN mkdir -p python-app && python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
+RUN pip install --no-cache-dir datamodel-code-generator==0.25.0
+RUN python -m datamodel_code_generator --input openapi.yaml --output models.py
 
-# Stage 2: Final Production Image
 FROM python:3.12-slim
 WORKDIR /app
-# 1. Copy the generated model from the first stage:
-COPY --from=generator /app/python-app/models.py .
-# 2. Copy dependencies and install:
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r app && useradd -r -g app app
+
 COPY python-app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# 3. CRITICAL: Copy the application code (main.py):
-COPY python-app/*.py .
-# Run the app:
+
+COPY --from=generator /app/models.py .
+COPY python-app/main.py .
+
+USER app:app
+
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

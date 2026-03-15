@@ -1,29 +1,60 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Pet Shelter API
+  description: API for managing pet shelter records.
   version: 1.0.0
+
 paths:
   /pets:
     get:
+      operationId: listPets
       summary: List all pets
+      tags: [pets]
       responses:
-        '200':
-          description: A list of pets
+        "200":
+          description: A list of pets.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
     post:
+      operationId: createPet
       summary: Add a new pet
+      tags: [pets]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: "#/components/schemas/Pet"
       responses:
-        '201':
-          description: Created
+        "201":
+          description: Pet created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      tags: [health]
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
 components:
   schemas:
     Pet:
       type: object
+      description: A pet in the shelter.
       required:
         - name
         - species
@@ -33,23 +64,24 @@ components:
           minimum: 1
         name:
           type: string
+          maxLength: 100
         date_of_birth:
           type: string
           format: date
         species:
           type: string
+          maxLength: 50
         breed:
           type: string
+          maxLength: 100
         colour:
           type: string
+          maxLength: 50
         age:
           type: integer
           minimum: 0
         sex:
-          type: string
-          enum:
-            - male
-            - female
+          $ref: "#/components/schemas/Sex"
         weight:
           type: number
           format: float
@@ -59,8 +91,23 @@ components:
         vaccinated:
           type: boolean
         adoption_status:
+          $ref: "#/components/schemas/AdoptionStatus"
+
+    Sex:
+      type: string
+      enum:
+        - male
+        - female
+
+    AdoptionStatus:
+      type: string
+      enum:
+        - available
+        - pending
+        - adopted
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
           type: string
-          enum:
-            - available
-            - pending
-            - adopted

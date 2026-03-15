@@ -1,9 +1,11 @@
-name: Monorepo CI/CD and Push to GHCR
+name: CI/CD
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "develop-monorepo" ]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   python-pipeline:
@@ -11,36 +13,29 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
-      - name: Install Python Tools & Dependencies
-        run: pip install fastapi uvicorn pytest httpx datamodel-code-generator
+      - name: Install dependencies
+        run: pip install -r python-app/requirements-dev.txt
 
-      - name: Generate Models from Source of Truth
+      - name: Generate models from openapi.yaml
         run: python -m datamodel_code_generator --input openapi.yaml --output python-app/models.py
 
-      - name: Lint code with Ruff
-        run: |
-          pip install ruff
-          ruff check .
+      - name: Lint
+        run: ruff check python-app/
 
-      - name: Run Tests
-        run: |
-          cd python-app
-          pytest
+      - name: Test
+        run: pytest python-app/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image for testing
+      - name: Build Docker image for smoke test
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -48,85 +43,83 @@ jobs:
           push: false
           load: true
           tags: python-pet-shelter:test
-      
-      - name: Test Docker image
+
+      - name: Smoke test Docker image
         run: |
-          docker run --rm -d -p 8000:8000 python-pet-shelter:test
-          # Wait for startup and test endpoints
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
-          docker stop $(docker ps -q) || true
-       
-      - name: Log in to GitHub Container Registry (GHCR)
+          docker run --rm -d -p 8000:8000 --name python-test python-pet-shelter:test
+          sleep 5
+          curl -f http://localhost:8000/health
+          docker stop python-test
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push Docker image
+
+      - name: Build and push image
+        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./python-app/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository }}/python-pet-shelter:latest
-  
+
   java-pipeline:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: "17"
+          distribution: temurin
+          cache: maven
 
-      - name: Build Java App
-        run: |
-          cd java-app
-          mvn clean package -DskipTests
+      - name: Build and test
+        run: mvn clean verify
+        working-directory: java-app
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # - name: Build Docker image for testing
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: .
-      #     file: ./java-app/Dockerfile
-      #     push: false
-      #     load: true
-      #     tags: java-pet-shelter:test
-            
-      # - name: Test Docker image
-      #   run: |
-      #     docker run --rm -d -p 8080:8080 java-pet-shelter:test
-      #     # Wait for startup and test endpoints
-      #     sleep 10
-      #     curl -f http://localhost:8080/health || exit 1
-      #     docker stop $(docker ps -q) || true
-        
-      - name: Log in to GitHub Container Registry (GHCR)
+      - name: Build Docker image for smoke test
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./java-app/Dockerfile
+          push: false
+          load: true
+          tags: java-pet-shelter:test
+
+      - name: Smoke test Docker image
+        run: |
+          docker run --rm -d -p 8080:8080 --name java-test java-pet-shelter:test
+          sleep 10
+          curl -f http://localhost:8080/health
+          docker stop java-test
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push Docker image
+
+      - name: Build and push image
+        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./java-app/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository }}/java-pet-shelter:latest
