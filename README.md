@@ -1,97 +1,101 @@
-![Build Status](https://github.com/arevaura/pet-shelter/actions/workflows/deploy.yml/badge.svg)
+# Pet Shelter API
 
-# 🐾 Pet Shelter API
+Contract-first polyglot service for managing pet shelter records.
+Both implementations (Python and Java) generate their models from a single `openapi.yaml`.
 
-A modern, production-ready FastAPI service for managing pet shelter records. This project demonstrates a **Contract-First** development workflow, automated testing, and CI/CD integration.
+## Architecture
 
-## 🚀 Key Features
-
-- **Design-First:** Built using an `openapi.yaml` specification.
-- **Auto-Generated Models:** Python Pydantic models generated directly from the OpenAPI schema.
-- **Fully Containerized:** Includes a `Dockerfile` for consistent deployment.
-- **CI/CD Pipeline:** GitHub Actions automatically run tests and push the Docker image to **GitHub Container Registry (GHCR)** on every push to `main`.
-- **Interactive Docs:** Built-in Swagger UI for testing endpoints.
-
-## 🛠️ Tech Stack
-
-- **Framework:** [FastAPI](https://fastapi.tiangolo.com/)
-- **Data Validation:** [Pydantic](https://docs.pydantic.dev/)
-- **Testing:** [Pytest](https://docs.pytest.org/)
-- **Containerization:** [Docker](https://www.docker.com/)
-- **CI/CD:** [GitHub Actions](https://github.com/features/actions)
-
-## 📁 Project Structure
-
-```text
-├── .github/workflows/
-│   └── deploy.yml      # CI/CD: Generates models, lints, and runs tests
-├── openapi.yaml        # API Blueprint (The Single Source of Truth)
-├── main.py             # Application logic (Imports from models.py)
-├── test_main.py        # Integration tests
-├── requirements.txt    # Production dependencies (FastAPI, Uvicorn)
-├── Dockerfile          # Multi-stage build (Generates models.py in-container)
-└── .gitignore          # Prevents models.py, venv, and caches from being tracked
+```
+openapi.yaml  ← Single source of truth
+  ├─► python-app/  (FastAPI + Pydantic, models generated at build time)
+  └─► java-app/    (Spring Boot 3.2 + openapi-generator-maven-plugin)
 ```
 
-# ⚙️ Local Setup
+**No hand-written model classes.** Both languages generate models from the spec.
 
-## 1. Clone & Environment
+## Project Structure
+
+```
+openapi.yaml                    # API specification (single source of truth)
+python-app/
+  ├── main.py                   # FastAPI application
+  ├── test_main.py              # Tests
+  ├── requirements.txt          # Runtime dependencies (pinned)
+  ├── requirements-dev.txt      # Dev/test dependencies (pinned)
+  ├── models.py                 # Generated (git-ignored)
+  └── Dockerfile
+java-app/
+  ├── pom.xml                   # Maven config + openapi-generator plugin
+  ├── src/main/java/com/petshelter/
+  │   ├── PetShelterApplication.java
+  │   └── api/
+  │       ├── PetController.java
+  │       └── HealthController.java
+  ├── src/test/java/com/petshelter/
+  │   └── PetShelterApplicationTests.java
+  ├── target/generated-sources/  # Generated models (git-ignored)
+  └── Dockerfile
+.github/workflows/deploy.yml    # CI/CD pipeline
+```
+
+## Tech Stack
+
+| | Python | Java |
+|---|---|---|
+| **Framework** | FastAPI 0.109 | Spring Boot 3.2 |
+| **Language** | Python 3.12 | Java 17 |
+| **Model Gen** | datamodel-code-generator | openapi-generator-maven-plugin |
+| **Validation** | Pydantic | Jakarta Bean Validation |
+| **Testing** | Pytest | JUnit 5 + MockMvc |
+| **API Docs** | Built-in `/docs` | springdoc `/swagger-ui.html` |
+
+## Local Development
+
+### Python
 
 ```bash
-git clone https://github.com/arevaura/pet-shelter.git
-cd pet-shelter
+cd python-app
+python -m venv venv && source venv/bin/activate
+pip install -r requirements-dev.txt
 
-python -m venv venv
-source venv/bin/activate  # Or .\venv\Scripts\activate on Windows
-pip install -r requirements.txt
-pip install datamodel-code-generator ruff pytest httpx
+# Generate models (git-ignored, must generate locally)
+python -m datamodel_code_generator --input ../openapi.yaml --output models.py
+
+uvicorn main:app --reload        # http://127.0.0.1:8000/docs
+pytest                           # Run tests
 ```
 
-## 2. Generate Models for Local Development
-
-Since `models.py` is ignored by Git, generate it locally for IDE support:
+### Java
 
 ```bash
-python -m datamodel_code_generator --input openapi.yaml --output models.py
+cd java-app
+
+# Build (generates models from openapi.yaml automatically via Maven plugin)
+mvn clean package
+
+mvn spring-boot:run              # http://127.0.0.1:8080/swagger-ui.html
+mvn test                         # Run tests
 ```
 
-## 3. Run & Test Locally
+## Docker
+
+Both Dockerfiles use multi-stage builds, non-root users, and health checks.
 
 ```bash
-uvicorn main:app --reload
-pytest
+# Python (build context is repo root)
+docker build -f python-app/Dockerfile -t pet-shelter-python .
+docker run -p 8000:8000 pet-shelter-python
+
+# Java (build context is repo root)
+docker build -f java-app/Dockerfile -t pet-shelter-java .
+docker run -p 8080:8080 pet-shelter-java
 ```
 
-View the interactive API docs at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+## CI/CD
 
-# 🐳 Docker & Deployment
+GitHub Actions pipeline (`.github/workflows/deploy.yml`):
 
-The Dockerfile automatically handles model generation via a multi-stage build:
+1. **Python** — generate models → lint (ruff) → test (pytest) → Docker smoke test → push to GHCR
+2. **Java** — build + test (`mvn verify`, models generated automatically) → Docker smoke test → push to GHCR
 
-**Build Image**
-
-```bash
-docker build -t pet-shelter .
-```
-
-**Run Container**
-
-```bash
-docker run -p 8000:8000 pet-shelter
-```
-
-# 🤖 CI/CD Workflow
-
-The pipeline is fully automated via **GitHub Actions**:
-
-1. **Model Generation:** Dynamically creates `models.py` from `openapi.yaml`.
-2. **Linting:** Runs **Ruff** to ensure code quality and standard formatting.
-3. **Automated Testing:** Executes **Pytest** to verify the API contracts.
-4. **Containerization:** Builds a Docker image and pushes it to the **GHCR**.
-```bash
-$ docker pull ghcr.io/arevaura/pet-shelter/pet-shelter:latest
-```
-
----
-
-Developed as a part of a FastAPI & DevOps training project.
+Images are pushed to GHCR on `main` branch only. Pull requests run tests without pushing.
